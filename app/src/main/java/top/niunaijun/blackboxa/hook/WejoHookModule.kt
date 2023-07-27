@@ -10,22 +10,14 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 
-const val WEJO_PACKAGE_NAME = "com.wejo.appv2"
-object WejoHookModule {
-    private var mApplicationContext: Context? = null
-    private var mClassLoader: ClassLoader? = null
+object WejoHookModule: BaseHookModule {
+    override val packageName: String
+        get() = "com.wejo.appv2"
+    override var mApplicationContext: Context? = null
+    override var mClassLoader: ClassLoader? = null
+    override var isInit = false
 
-    fun init(applicationContext: Context, classLoader: ClassLoader) {
-        mApplicationContext = applicationContext
-        mClassLoader = classLoader
-
-        CoroutineScope(Dispatchers.IO).launch {
-            delay(5000)
-            initHook()
-        }
-    }
-
-    private fun initHook() {
+    override fun initHook() {
 //        hookChatShowMessage() //顯示聊天列表預覽訊息
 //        hookChatAdapter() //顯示聊天室訊息
         hookImagePrivate() //顯示相簿照片
