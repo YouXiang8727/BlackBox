@@ -6,10 +6,9 @@ import de.robv.android.xposed.XC_MethodHook
 import de.robv.android.xposed.XposedHelpers
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import java.lang.Exception
-import kotlin.reflect.full.declaredMemberFunctions
-import kotlin.reflect.jvm.isAccessible
 
 const val END_LINE = "================================================================"
 interface BaseHookModule {
@@ -55,54 +54,5 @@ interface BaseHookModule {
                 Log.e(tag, "$e",)
             }
         }
-    }
-    fun getLogXCHook(tag: String) = object: XC_MethodHook() {
-        override fun beforeHookedMethod(param: MethodHookParam?) {
-            super.beforeHookedMethod(param)
-            Log.d(tag, "beforeHookedMethod")
-            param?.args?.forEachIndexed { index, any ->
-                Log.d(tag, "args[$index]: $any")
-            }
-            Log.d(tag, END_LINE)
-        }
-
-        override fun afterHookedMethod(param: MethodHookParam?) {
-            super.afterHookedMethod(param)
-            Log.d(tag, "afterHookedMethod")
-            Log.d(tag, "result: ${param?.result}")
-            param?.thisObject?.javaClass?.declaredFields?.forEach { field ->
-                field.isAccessible = true
-                Log.d(tag, "${field.name}: ${field.get(param.thisObject)}")
-            }
-            Log.d(tag, END_LINE)
-        }
-    }
-
-    fun setValueUsingReflection(mutableLiveData: Any, value: Any?) {
-        try {
-            val postValueMethod =
-                mutableLiveData::class.declaredMemberFunctions.find { it.name == "postValue" }
-
-            postValueMethod?.isAccessible = true
-
-            postValueMethod?.call(mutableLiveData, value)
-        } catch (e: Exception) {
-            e.printStackTrace()
-            Log.e("Reflection", "setValueUsingReflection e:$e")
-        }
-    }
-
-    fun getValueUsingReflection(liveData: Any?): Any? {
-        liveData?.let {
-            try {
-                val targetClass = liveData::class.java
-                val method = targetClass.getMethod("getValue")
-
-                return method.invoke(liveData)
-            } catch (e: Exception) {
-                Log.e("Reflection", "getValueUsingReflection e:$e")
-            }
-        }
-        return null
     }
 }

@@ -1,10 +1,12 @@
 package top.niunaijun.blackboxa.hook
 
+import android.app.Activity
 import android.content.Context
 import android.util.Log
 import de.robv.android.xposed.XC_MethodHook
 import de.robv.android.xposed.XposedBridge
 import de.robv.android.xposed.XposedHelpers
+import de.robv.android.xposed.callbacks.XC_LoadPackage
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
@@ -18,41 +20,10 @@ object WejoHookModule: BaseHookModule {
     override var isInit = false
 
     override fun initHook() {
-//        hookChatShowMessage() //顯示聊天列表預覽訊息
-//        hookChatAdapter() //顯示聊天室訊息
         hookImagePrivate() //顯示相簿照片
         hookFeed() //顯示動態照片
-        hookMemberType() //取得MemberType 設定為VIP
-    }
-
-    private fun hookChatShowMessage() {
-        val clazz = XposedHelpers.findClass("com.wejo.ecapp.activity.ChatActivity", mClassLoader)
-        XposedBridge.hookAllMethods(clazz, "isShowMessage", object: XC_MethodHook() {
-            override fun beforeHookedMethod(param: MethodHookParam?) {
-                super.beforeHookedMethod(param)
-            }
-
-            override fun afterHookedMethod(param: MethodHookParam?) {
-                super.afterHookedMethod(param)
-                param?.result = true
-            }
-        })
-    }
-
-    private fun hookChatAdapter() {
-        XposedHelpers.findAndHookConstructor("com.wejo.ecapp.adapter.ChatAdapter",
-            mClassLoader,
-            Context::class.java,
-            String::class.java,
-            Boolean::class.java,
-            Boolean::class.java,
-            object: XC_MethodHook(){
-            override fun beforeHookedMethod(param: MethodHookParam?) {
-                super.beforeHookedMethod(param)
-                param?.args?.set(2, false)
-                param?.args?.set(3, true)
-            }
-        })
+        hookMember()
+        hookJoDetailActivity()
     }
 
     private fun hookImagePrivate() {
@@ -82,23 +53,72 @@ object WejoHookModule: BaseHookModule {
         }
     }
 
-    private fun hookMemberType() {
-        val memberTypeEnumClass = XposedHelpers.findClass("com.wejo.ecapp.utils.AppInfoUtil.MemberType", mClassLoader)
-        val enums = memberTypeEnumClass.enumConstants!!
-        enums.forEachIndexed { index, any ->
-            Log.d("hookMemberType", "enums$index value=${(any as Enum<*>).name}")
-        }
-        val clazz = XposedHelpers.findClass("com.wejo.ecapp.utils.AppInfoUtil", mClassLoader)
-        XposedBridge.hookAllMethods(clazz, "getMemberType", object: XC_MethodHook() {
+    private fun hookMember() {
+        val clazz = XposedHelpers.findClass("com.wejo.ecapp.api.data.Member", mClassLoader)
+        XposedHelpers.findAndHookMethod(clazz, "getMember_type", object: XC_MethodHook() {
             override fun beforeHookedMethod(param: MethodHookParam?) {
                 super.beforeHookedMethod(param)
-                Log.d("hookMemberType", "beforeHookedMethod param=$param")
+                Log.d("WejoHookModule", "before hookMember getMember_type: ${param?.args?.joinToString(", ")}")
             }
 
             override fun afterHookedMethod(param: MethodHookParam?) {
                 super.afterHookedMethod(param)
-                Log.d("hookMemberType", "afterHookedMethod param=$param")
-                param?.result = enums[2] as Enum<*>
+                Log.d("WejoHookModule", "after hookMember getMember_type: ${param?.args?.joinToString(", ")}")
+                param?.result = 2
+            }
+        })
+
+        XposedHelpers.findAndHookConstructor(clazz, object: XC_MethodHook() {
+            override fun beforeHookedMethod(param: MethodHookParam?) {
+                super.beforeHookedMethod(param)
+                Log.d("WejoHookModule", "before hook constructor com.wejo.ecapp.api.data.Member")
+            }
+
+            override fun afterHookedMethod(param: MethodHookParam?) {
+                super.afterHookedMethod(param)
+                Log.d("WejoHookModule", "after hook constructor com.wejo.ecapp.api.data.Member")
+            }
+        })
+
+        XposedHelpers.findAndHookMethod(clazz, "getMember_points", object: XC_MethodHook() {
+            override fun beforeHookedMethod(param: MethodHookParam?) {
+                super.beforeHookedMethod(param)
+                Log.d("WejoHookModule", "before hookMember getMember_points: ${param?.args?.joinToString(", ")}")
+            }
+
+            override fun afterHookedMethod(param: MethodHookParam?) {
+                super.afterHookedMethod(param)
+                Log.d("WejoHookModule", "after hookMember getMember_points: ${param?.args?.joinToString(", ")}")
+                param?.result = 99
+            }
+        })
+
+        XposedHelpers.findAndHookMethod(clazz, "getWejo_points", object: XC_MethodHook() {
+            override fun beforeHookedMethod(param: MethodHookParam?) {
+                super.beforeHookedMethod(param)
+                Log.d("WejoHookModule", "before hookMember getWejo_points: ${param?.args?.joinToString(", ")}")
+            }
+
+            override fun afterHookedMethod(param: MethodHookParam?) {
+                super.afterHookedMethod(param)
+                Log.d("WejoHookModule", "after hookMember getWejo_points: ${param?.args?.joinToString(", ")}")
+                param?.result = 100
+            }
+        })
+    }
+
+    private fun hookJoDetailActivity() {
+        val clazz = XposedHelpers.findClass("com.wejo.ecapp.activity.JoDetailActivity", mClassLoader)
+        XposedHelpers.findAndHookMethod(clazz, "isRegistered", object: XC_MethodHook() {
+            override fun beforeHookedMethod(param: MethodHookParam?) {
+                super.beforeHookedMethod(param)
+                Log.d("WejoHookModule", "before hook JoDetailActivity isRegistered: ${param?.args?.joinToString(", ")}")
+            }
+
+            override fun afterHookedMethod(param: MethodHookParam?) {
+                super.afterHookedMethod(param)
+                Log.d("WejoHookModule", "after hook JoDetailActivity isRegistered: ${param?.args?.joinToString(", ")}")
+                param?.result = true
             }
         })
     }

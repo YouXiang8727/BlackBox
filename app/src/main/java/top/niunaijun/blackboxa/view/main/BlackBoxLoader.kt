@@ -8,11 +8,8 @@ import top.niunaijun.blackbox.app.BActivityThread
 import top.niunaijun.blackbox.app.configuration.AppLifecycleCallback
 import top.niunaijun.blackbox.app.configuration.ClientConfiguration
 import top.niunaijun.blackboxa.app.App
-import top.niunaijun.blackboxa.app.rocker.RockerManager
 import top.niunaijun.blackboxa.biz.cache.AppSharedPreferenceDelegate
-import top.niunaijun.blackboxa.hook.WEJO_PACKAGE_NAME
 import top.niunaijun.blackboxa.hook.WejoHookModule
-import top.niunaijun.blackboxa.util.toast
 import java.io.File
 
 /**
@@ -96,7 +93,7 @@ class BlackBoxLoader {
                 Log.d(TAG, "afterApplicationOnCreate: pkg $packageName, processName $processName")
                 if (packageName == null || processName == null || application == null) return
                 when(packageName) {
-                    WEJO_PACKAGE_NAME -> WejoHookModule.init(application.applicationContext, application.classLoader)
+                    WejoHookModule.packageName -> WejoHookModule.init(application.applicationContext, application.classLoader)
                 }
             }
         })
